@@ -1,0 +1,49 @@
+flowchart TB
+    classDef client fill:#e8f0fe,stroke:#1a73e8,stroke-width:2px,color:#202124
+    classDef vad fill:#fef7e0,stroke:#f9ab00,stroke-width:2px,color:#202124
+    classDef prosodia fill:#e6f4ea,stroke:#1e8e3e,stroke-width:2px,color:#202124
+    classDef gate fill:#fce8e6,stroke:#d93025,stroke-width:2px,color:#202124
+    classDef gemini fill:#e8f0fe,stroke:#1765cc,stroke-width:2.5px,color:#202124
+
+    subgraph Browser["Browser Client · Google Light Mode Liquid Glass UI"]
+        Mic["16 kHz Mono PCM Capture<br/>(Hardware Downsampler & Radial Visualizer)"]:::client
+        TxStream["Transcriptions Stream<br/>(User & Model Text Only)"]:::client
+        SidePanel["Telemetry Side Panels<br/>(Silero VAD Events + Prosodia Noul Cards)"]:::client
+        Speaker["24 kHz PCM Audio Output<br/>(Kore · en-IN Playback)"]:::client
+    end
+
+    subgraph FastAPI["FastAPI Coordinator · WebSocket (/ws/live)"]
+        VAD["Silero VAD v6 (ONNX)<br/>32 ms Windows (512 samples @ 16 kHz)"]:::vad
+        EnvProf["Continuous Prosodic Envelope Profiler<br/>(Syllable Nuclei + Active Voicing Duty Cycle)"]:::vad
+        FloorGate{"Conversational Floor &<br/>Turn-Intent Gate"}:::gate
+    end
+
+    subgraph ProsodiaEngine["Prosodia (alperiox/audio-jevlike) · Noul-Only Engine"]
+        WhisperEnc["Frozen Whisper-Small Encoder<br/>(50 Hz Latent State · No Decoder / No ASR)"]:::prosodia
+        StateEnc["StateEncoder<br/>(Utterance Stats + Speaker-Relative Norm + AttentionPool)"]:::prosodia
+        QEnc["QuestionEncoder (Frozen MiniLM-L6-v2)<br/>QuestionSpec(qtype='noul', options=['false', 'true'])"]:::prosodia
+        Branch["IsolatedBranches + Pointer ReadoutHead<br/>z = (W_b h)^T (W_o e_opt) / sqrt(d)"]:::prosodia
+        Calib["Multilingual Backchannel Noul Calibration<br/>P(true: Backchannel) vs P(false: Turn Statement)"]:::prosodia
+    end
+
+    subgraph AgentPlatform["Google Cloud Agent Platform (Vertex AI · ADC)"]
+        GeminiLive["Gemini 3.8 Flash Live API (gemini-3.8-live GA)<br/>Voice: Kore · Locale: en-IN · Multi-Turn Bidi"]:::gemini
+    end
+
+    Mic -->|"16 kHz PCM16 Chunks"| VAD
+    VAD -->|"speech_start / speech_end + RMS"| SidePanel
+    VAD -->|"Active Speech Frames"| EnvProf
+    EnvProf -->|"Syllable Nuclei & Voicing Duty"| FloorGate
+
+    VAD -->|"Utterance Waveform (speech_end)"| WhisperEnc
+    WhisperEnc --> StateEnc
+    StateEnc --> Branch
+    QEnc --> Branch
+    Branch --> Calib
+    Calib -->|"prosodia_noul Event<br/>(logits, P(true), P(false), language)"| SidePanel
+    Calib -->|"noul: true vs noul: false"| FloorGate
+
+    FloorGate -->|"noul: true (Backchannel)<br/>NO INTERRUPT"| SidePanel
+    FloorGate -->|"noul: false / Turn Speech Committed<br/>Stream 16 kHz PCM"| GeminiLive
+    GeminiLive -->|"Input & Output Audio Transcriptions"| TxStream
+    GeminiLive -->|"24 kHz Native Audio (Kore · en-IN)"| Speaker

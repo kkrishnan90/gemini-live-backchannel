@@ -1,0 +1,31 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Sensitive certificates, keys, and environment files
+certs/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+*credentials*.json
+*service-account*.json
+
+# Temporary caches & large model artifacts
+/tmp/
+fixtures/*.pt
+fixtures/*.npy
+*.log
+.DS_Store

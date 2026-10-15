@@ -1,0 +1,15 @@
+flowchart LR
+    classDef user fill:#e8f0fe,stroke:#1a73e8,stroke-width:2px,color:#202124
+    classDef vad fill:#fef7e0,stroke:#f9ab00,stroke-width:2px,color:#202124
+    classDef prosodia fill:#e6f4ea,stroke:#1e8e3e,stroke-width:2px,color:#202124
+    classDef ignore fill:#f1f3f4,stroke:#5f6368,stroke-width:2px,stroke-dasharray: 5 3,color:#3c4043
+    classDef gemini fill:#e8f0fe,stroke:#1765cc,stroke-width:2.5px,color:#202124
+
+    U["1. User Speaks<br/>(16 kHz Mic Stream)"]:::user --> V["2. Silero VAD v6<br/>& Prosodic Profiler"]:::vad
+    V --> P["3. Prosodia Noul-Only<br/>options: ['false', 'true']<br/>(Frozen Whisper-Small · No ASR)"]:::prosodia
+
+    P -->|"noul: true (P(true) >= 0.5)<br/>e.g. 'Achha', 'Uh-huh', 'Claro'"| BC["4a. Backchannel Gate<br/>(Ignored by Model · No Interrupt)"]:::ignore
+    BC -->|"Log Event Only"| SP["Right Side Panel<br/>(BACKCHANNEL · NO INTERRUPT)<br/>Gemini Live API (assistant) continues to speak"]:::ignore
+
+    P -->|"noul: false (P(false) > 0.5)<br/>Substantive Sentence / Turn"| TURN["4b. Forward 16 kHz Audio<br/>to Gemini 3.8 Live API"]:::gemini
+    TURN --> RESP["5. Gemini Live API (assistant) Responds<br/>Voice: Kore (en-IN) · 24 kHz Audio<br/>+ User & Model Transcriptions"]:::gemini

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PROSODIA × GEMINI LIVE · Agent Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;500;700&family=Google+Sans+Text:wght@400;500;700&family=Google+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <!-- Ambient Warm Mineral Background -->
+  <div class="ambient-backdrop" aria-hidden="true">
+    <div class="ambient-orb orb-champagne"></div>
+    <div class="ambient-orb orb-emerald"></div>
+  </div>
+
+  <div class="app-shell">
+    <!-- TOP HEADER BAR -->
+    <header class="top-header liquid-glass" id="top-header">
+      <div class="brand-cluster">
+        <div class="brand-emblem" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2" />
+            <path d="M8 12V10M12 15V9M16 13V11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+        </div>
+        <div class="brand-Title-row">
+          <span class="brand-primary">PROSODIA × GEMINI LIVE</span>
+          <span class="brand-sep">·</span>
+          <span class="brand-editorial">Agent Platform</span>
+        </div>
+      </div>
+
+      <!-- Minimized Gemini Live Configuration Bar -->
+      <nav class="config-pill-bar" id="config-pill-bar" aria-label="Minimized Gemini Live Configuration">
+        <span class="config-pill pill-gold" id="pill-model">gemini-3.8-live · ADC</span>
+        <span class="config-pill pill-gold" id="pill-voice">Kore · en-IN</span>
+        <span class="config-pill" id="pill-vad">Silero VAD</span>
+        <span class="config-pill pill-emerald" id="pill-prosodia">Prosodia: noul</span>
+        <button type="button" class="config-inspect-btn" id="config-toggle-btn" aria-expanded="false" title="Inspect Gemini Live Configuration">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+            <path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <span>Config</span>
+        </button>
+      </nav>
+
+      <!-- Session Status Pill -->
+      <div class="header-status-cluster">
+        <div class="session-status-pill" id="session-status-pill" data-status="connecting">
+          <span class="status-indicator" id="session-status-dot"></span>
+          <span class="status-text" id="session-status-text">ADC · Connecting</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN WORKSPACE GRID -->
+    <main class="workspace-grid">
+      <!-- LEFT COLUMN: Pure Transcriptions Stream + Minimal Mic Dock -->
+      <section class="left-column" aria-label="Conversation Transcriptions and Microphone">
+        <div class="conversation-panel liquid-glass">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h1 class="panel-title">Transcriptions</h1>
+              <span class="panel-subtitle">User ⇄ Gemini 3.8 Live (Kore · en-IN)</span>
+            </div>
+            <div class="panel-header-actions">
+              <span class="meta-badge" id="turn-counter-badge">Turn #1</span>
+              <span class="meta-badge badge-audio-out" id="model-audio-badge">24kHz Ready</span>
+              <button type="button" class="ghost-action-btn" id="clear-transcript-btn" title="Clear transcriptions">Clear</button>
+            </div>
+          </div>
+
+          <!-- Transcriptions Stream (User & Model Transcriptions ONLY) -->
+          <div class="transcript-stream" id="transcript-stream" role="log" aria-live="polite">
+            <div class="empty-stream-guide" id="empty-stream-guide">
+              <div class="guide-badge">TRANSCRIPTIONS STREAM</div>
+              <p class="guide-headline">Tap the Microphone below to start or stop speaking.</p>
+              <p class="guide-subtext">
+                This view displays only <strong>User</strong> and <strong>Model (Kore · en-IN)</strong> transcriptions.
+                Short multilingual backchannels (<code>noul: true</code>) do not interrupt the model; only long sentences trigger barge-in or turn transitions.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Minimal Bottom Control Dock -->
+        <div class="control-dock liquid-glass" id="control-dock">
+          <div class="mic-dock-row">
+            <div class="mic-button-stage">
+              <canvas id="mic-radial-canvas" width="76" height="76" aria-hidden="true"></canvas>
+              <svg class="mic-radial-svg" viewBox="0 0 76 76" aria-hidden="true">
+                <circle class="ring-outer" cx="38" cy="38" r="34" />
+                <circle class="ring-inner" cx="38" cy="38" r="28" />
+              </svg>
+              <button type="button" class="mic-button" id="mic-toggle-btn" aria-pressed="false" title="Start or Stop Speaking">
+                <svg class="mic-icon mic-icon-idle" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.8" />
+                  <path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+                <svg class="mic-icon mic-icon-active" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor" />
+                </svg>
+              </button>
+            </div>
+
+            <div class="mic-telemetry-info">
+              <div class="mic-primary-row">
+                <span class="mic-status-label" id="mic-status-text">Tap Mic to Start Speaking</span>
+                <span class="mic-action-tag" id="mic-state-badge">IDLE</span>
+              </div>
+              <div class="mic-secondary-row" id="mic-substatus-text">
+                16kHz PCM · Substantive speech interrupts · Backchannels pass through
+              </div>
+            </div>
+
+            <button type="button" class="lab-drawer-toggle" id="lab-toggle-btn" aria-expanded="false" title="Toggle Multilingual Test Audio">
+              <span>Test Audio</span>
+              <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Collapsible Test Audio Strip (Hidden by default to keep UI minimal & uncluttered) -->
+          <div class="audio-lab-strip" id="audio-lab-strip" hidden>
+            <div class="audio-lab-presets" id="audio-lab-presets">
+              <button type="button" class="preset-chip preset-bc" data-preset="en_in_backchannel">
+                <span class="chip-dot dot-emerald"></span>Achha [en-IN]
+              </button>
+              <button type="button" class="preset-chip preset-bc" data-preset="hi_in_backchannel">
+                <span class="chip-dot dot-emerald"></span>हाँ, ठीक है [hi-IN]
+              </button>
+              <button type="button" class="preset-chip preset-bc" data-preset="es_backchannel">
+                <span class="chip-dot dot-emerald"></span>Claro [es]
+              </button>
+              <button type="button" class="preset-chip preset-bc" data-preset="ja_backchannel">
+                <span class="chip-dot dot-emerald"></span>なるほど [ja]
+              </button>
+              <button type="button" class="preset-chip preset-bc" data-preset="fr_backchannel">
+                <span class="chip-dot dot-emerald"></span>D'accord [fr]
+              </button>
+              <button type="button" class="preset-chip preset-bc" data-preset="tr_backchannel">
+                <span class="chip-dot dot-emerald"></span>Evet [tr]
+              </button>
+              <button type="button" class="preset-chip preset-turn" data-preset="en_in_full_turn">
+                <span class="chip-dot dot-gold"></span>Turn 1: South India Monsoon
+              </button>
+              <button type="button" class="preset-chip preset-turn" data-preset="multi_turn_followup">
+                <span class="chip-dot dot-gold"></span>Turn 2: Bengaluru Weekend
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT SIDE PANEL: Silero VAD Events + Prosodia Noul Backchannel Events -->
+      <aside class="right-column" aria-label="Silero VAD and Prosodia Noul Event Logs">
+        <!-- TOP RIGHT: Silero VAD Events -->
+        <section class="telemetry-panel liquid-glass" id="vad-panel" aria-label="Silero VAD Events">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2 class="panel-title">Silero VAD Events</h2>
+              <span class="panel-subtitle">16kHz ONNX · 32ms Window · Prosodic Turn-Intent Gate</span>
+            </div>
+            <div class="panel-header-actions">
+              <span class="meta-badge" id="vad-events-count">0 events</span>
+              <span class="vad-state-pill" id="vad-state-pill" data-state="SILENCE">SILENCE</span>
+            </div>
+          </div>
+
+          <div class="vad-meter-strip">
+            <div class="vad-metric-box">
+              <span class="metric-label">PROB</span>
+              <span class="metric-value mono" id="vad-prob-value">0.000</span>
+            </div>
+            <div class="vad-bar-container">
+              <div class="vad-bar-track">
+                <div class="vad-bar-fill" id="vad-prob-bar" style="width: 0%;"></div>
+                <div class="vad-threshold-marker" style="left: 45%;" title="Speech Threshold: 0.45"></div>
+              </div>
+            </div>
+            <div class="vad-metric-box">
+              <span class="metric-label">RMS</span>
+              <span class="metric-value mono" id="vad-rms-value">-60.0 dB</span>
+            </div>
+          </div>
+
+          <div class="telemetry-list" id="vad-events-list" role="log" aria-live="polite">
+            <div class="empty-telemetry-row" id="vad-empty-state">
+              Silero VAD <code>speech_start</code>, <code>long_sentence</code>, <code>speech_end</code>, and turn-gate events log here.
+            </div>
+          </div>
+        </section>
+
+        <!-- BOTTOM RIGHT: Prosodia Noul Backchannel Decisions -->
+        <section class="telemetry-panel liquid-glass" id="prosodia-panel" aria-label="Prosodia Noul Decisions">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <h2 class="panel-title">Prosodia · Noul Backchannel Events</h2>
+              <span class="panel-subtitle">Primitive: <code>noul</code> only (<code>["false", "true"]</code>) · Whisper-Small Frozen</span>
+            </div>
+            <div class="panel-header-actions">
+              <span class="meta-badge badge-emerald" id="noul-decisions-count">0 decisions</span>
+            </div>
+          </div>
+
+          <div class="telemetry-list" id="noul-events-list" role="log" aria-live="polite">
+            <div class="empty-telemetry-row" id="noul-empty-state">
+              Prosodia <code>noul</code> backchannel decisions (<code>P(true)</code> vs <code>P(false)</code> and pointer logits) log here.
+            </div>
+          </div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <!-- TOP-LEVEL CONFIG MODAL OVERLAY (Outside header so it NEVER clips or goes behind Silero VAD panel) -->
+  <div class="config-modal-backdrop" id="config-popover" hidden>
+    <div class="config-modal-card liquid-glass" role="dialog" aria-modal="true" aria-labelledby="config-modal-title">
+      <div class="config-popover-header">
+        <div class="config-title-wrap">
+          <span class="config-popover-title" id="config-modal-title">Gemini 3.8 Live API &amp; Prosodia Noul Configuration</span>
+          <span class="config-popover-sub">Google Cloud Agent Platform (Vertex AI · ADC)</span>
+        </div>
+        <button type="button" class="config-popover-close" id="config-close-btn" aria-label="Close configuration">✕</button>
+      </div>
+      <div class="config-summary-grid">
+        <div class="cfg-kv"><span class="cfg-k">Model</span><span class="cfg-v mono">gemini-3.8-live (GA)</span></div>
+        <div class="cfg-kv"><span class="cfg-k">Auth</span><span class="cfg-v mono">ADC · Vertex AI</span></div>
+        <div class="cfg-kv"><span class="cfg-k">Voice &amp; Locale</span><span class="cfg-v mono">Kore · en-IN</span></div>
+        <div class="cfg-kv"><span class="cfg-k">VAD Engine</span><span class="cfg-v mono">Silero VAD v6 (16kHz)</span></div>
+        <div class="cfg-kv"><span class="cfg-k">Prosodia Mode</span><span class="cfg-v mono">noul only ["false", "true"]</span></div>
+        <div class="cfg-kv"><span class="cfg-k">Interruption Policy</span><span class="cfg-v mono">Prosodic Turn vs Noul Backchannel</span></div>
+      </div>
+      <pre class="config-json-pre" id="config-json-viewer"></pre>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

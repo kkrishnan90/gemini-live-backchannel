@@ -6,83 +6,17 @@ A real-time, bidirectional voice agent built on **Google Cloud Agent Platform (V
 
 ## 1. End-to-End Flow: How Gemini Live API (Assistant) Responds While Ignoring Backchannels
 
-![Backchannel Gating & Response Flow](docs/backchannel_flow.png)
-
-```mermaid
-flowchart LR
-    classDef user fill:#e8f0fe,stroke:#1a73e8,stroke-width:2px,color:#202124
-    classDef vad fill:#fef7e0,stroke:#f9ab00,stroke-width:2px,color:#202124
-    classDef prosodia fill:#e6f4ea,stroke:#1e8e3e,stroke-width:2px,color:#202124
-    classDef ignore fill:#f1f3f4,stroke:#5f6368,stroke-width:2px,stroke-dasharray: 5 3,color:#3c4043
-    classDef gemini fill:#e8f0fe,stroke:#1765cc,stroke-width:2.5px,color:#202124
-
-    U["1. User Speaks<br/>(16 kHz Mic Stream)"]:::user --> V["2. Silero VAD v6<br/>& Prosodic Profiler"]:::vad
-    V --> P["3. Prosodia Noul-Only<br/>options: ['false', 'true']<br/>(Frozen Whisper-Small · No ASR)"]:::prosodia
-
-    P -->|"noul: true (P(true) >= 0.5)<br/>e.g. 'Achha', 'Uh-huh', 'Claro'"| BC["4a. Backchannel Gate<br/>(Ignored by Model · No Interrupt)"]:::ignore
-    BC -->|"Log Event Only"| SP["Right Side Panel<br/>(BACKCHANNEL · NO INTERRUPT)<br/>Gemini Live API (assistant) continues to speak"]:::ignore
-
-    P -->|"noul: false (P(false) > 0.5)<br/>Substantive Sentence / Turn"| TURN["4b. Forward 16 kHz Audio<br/>to Gemini 3.8 Live API"]:::gemini
-    TURN --> RESP["5. Gemini Live API (assistant) Responds<br/>Voice: Kore (en-IN) · 24 kHz Audio<br/>+ User & Model Transcriptions"]:::gemini
-```
+<p align="center">
+  <img src="docs/backchannel_flow.png" alt="Backchannel Gating & Gemini Live API (Assistant) Response Flow" width="100%" />
+</p>
 
 ---
 
 ## 2. Full System Architecture
 
-![Prosodia × Gemini 3.8 Live Architecture](docs/architecture.png)
-
-```mermaid
-flowchart TB
-    classDef client fill:#e8f0fe,stroke:#1a73e8,stroke-width:2px,color:#202124
-    classDef vad fill:#fef7e0,stroke:#f9ab00,stroke-width:2px,color:#202124
-    classDef prosodia fill:#e6f4ea,stroke:#1e8e3e,stroke-width:2px,color:#202124
-    classDef gate fill:#fce8e6,stroke:#d93025,stroke-width:2px,color:#202124
-    classDef gemini fill:#e8f0fe,stroke:#1765cc,stroke-width:2.5px,color:#202124
-
-    subgraph Browser["Browser Client · Google Light Mode Liquid Glass UI"]
-        Mic["16 kHz Mono PCM Capture<br/>(Hardware Downsampler & Radial Visualizer)"]:::client
-        TxStream["Transcriptions Stream<br/>(User & Model Text Only)"]:::client
-        SidePanel["Telemetry Side Panels<br/>(Silero VAD Events + Prosodia Noul Cards)"]:::client
-        Speaker["24 kHz PCM Audio Output<br/>(Kore · en-IN Playback)"]:::client
-    end
-
-    subgraph FastAPI["FastAPI Coordinator · WebSocket (/ws/live)"]
-        VAD["Silero VAD v6 (ONNX)<br/>32 ms Windows (512 samples @ 16 kHz)"]:::vad
-        EnvProf["Continuous Prosodic Envelope Profiler<br/>(Syllable Nuclei + Active Voicing Duty Cycle)"]:::vad
-        FloorGate{"Conversational Floor &<br/>Turn-Intent Gate"}:::gate
-    end
-
-    subgraph ProsodiaEngine["Prosodia (alperiox/audio-jevlike) · Noul-Only Engine"]
-        WhisperEnc["Frozen Whisper-Small Encoder<br/>(50 Hz Latent State · No Decoder / No ASR)"]:::prosodia
-        StateEnc["StateEncoder<br/>(Utterance Stats + Speaker-Relative Norm + AttentionPool)"]:::prosodia
-        QEnc["QuestionEncoder (Frozen MiniLM-L6-v2)<br/>QuestionSpec(qtype='noul', options=['false', 'true'])"]:::prosodia
-        Branch["IsolatedBranches + Pointer ReadoutHead<br/>z = (W_b h)^T (W_o e_opt) / sqrt(d)"]:::prosodia
-        Calib["Multilingual Backchannel Noul Calibration<br/>P(true: Backchannel) vs P(false: Turn Statement)"]:::prosodia
-    end
-
-    subgraph AgentPlatform["Google Cloud Agent Platform (Vertex AI · ADC)"]
-        GeminiLive["Gemini 3.8 Flash Live API (gemini-3.8-live GA)<br/>Voice: Kore · Locale: en-IN · Multi-Turn Bidi"]:::gemini
-    end
-
-    Mic -->|"16 kHz PCM16 Chunks"| VAD
-    VAD -->|"speech_start / speech_end + RMS"| SidePanel
-    VAD -->|"Active Speech Frames"| EnvProf
-    EnvProf -->|"Syllable Nuclei & Voicing Duty"| FloorGate
-
-    VAD -->|"Utterance Waveform (speech_end)"| WhisperEnc
-    WhisperEnc --> StateEnc
-    StateEnc --> Branch
-    QEnc --> Branch
-    Branch --> Calib
-    Calib -->|"prosodia_noul Event<br/>(logits, P(true), P(false), language)"| SidePanel
-    Calib -->|"noul: true vs noul: false"| FloorGate
-
-    FloorGate -->|"noul: true (Backchannel)<br/>NO INTERRUPT"| SidePanel
-    FloorGate -->|"noul: false / Turn Speech Committed<br/>Stream 16 kHz PCM"| GeminiLive
-    GeminiLive -->|"Input & Output Audio Transcriptions"| TxStream
-    GeminiLive -->|"24 kHz Native Audio (Kore · en-IN)"| Speaker
-```
+<p align="center">
+  <img src="docs/architecture.png" alt="Prosodia × Gemini 3.8 Live System Architecture" width="100%" />
+</p>
 
 ---
 
